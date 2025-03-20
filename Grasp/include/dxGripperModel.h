@@ -52,6 +52,8 @@
 
 using namespace std;
 
+#define DX_GRASP_AS_POS_QUAT (1)
+
 class dxGripperModel
 {
 public:
@@ -668,6 +670,17 @@ public:
             return Eigen::Map<Eigen::RowVectorXd>(M.data(), M.size());
         }
 
+        static void write_grasp(std::ostream& os, const Eigen::Matrix4d& grasp) 
+        {
+            Eigen::Vector3d pos = grasp.block<3, 1>(0, 3);
+            Eigen::Quaterniond quat(Eigen::Matrix3d(grasp.block<3, 3>(0, 0)));
+            quat.normalize();
+            os << pos.transpose() << " " << quat.w() << " "
+                                         << quat.x() << " "
+                                         << quat.y() << " "
+                                         << quat.z() << "|";
+        }
+
         void save(std::ostream& os, bool isHeader = false, bool isEndl = true)
         {
             if (isHeader)
@@ -675,10 +688,17 @@ public:
                 os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability (Matrix as Col vectors)" << endl;
                 return;
             }
+#if DX_GRASP_AS_POS_QUAT
+            write_grasp(os, preGrasp);
+            write_grasp(os, pose);
+            write_grasp(os, postGrasp);
+#else
             os << getColMajorVector(preGrasp) << "|";
             os << getColMajorVector(pose) << "|";
             os << getColMajorVector(postGrasp) << "|";
+#endif
             os << fs.prob;
+
             if (isEndl)
                 os << endl;
         }
@@ -748,15 +768,17 @@ public:
             dxf = -(gripperxyz[0] + fingerxyz[0]) / 2.0;
             dx = -(gripperxyz[0] / 2.0 + fingerxyz[0] * contactLocRatio);
 
+            // Rot around Z 90deg, offset dx along X
             TfeatureInRgripper << 0, -1, 0, dx,
-                               1, 0, 0, 0,
-                               0, 0, 1, 0,
-                               0, 0, 0, 1;
+                                  1,  0, 0, 0,
+                                  0,  0, 1, 0,
+                                  0,  0, 0, 1;
 
+            // Identity, offset 0.1 along X
             TpreGraspInRgripper << 1, 0, 0, 0.1,
-                                0, 1, 0, 0,
-                                0, 0, 1, 0,
-                                0, 0, 0, 1;
+                                   0, 1, 0, 0,
+                                   0, 0, 1, 0,
+                                   0, 0, 0, 1;
 
             OffsetPostGraspInRbase << 0, 0, 0.2;
 

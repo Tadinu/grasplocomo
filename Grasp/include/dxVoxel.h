@@ -238,7 +238,7 @@ public:
 			for (int i = 0; i < cloud.size(); i++) {
 				Params p;
 				p.id = i;
-				tasks.addTask(p);
+				tasks.runTask(p);
 			}
 			elements = tasks.getResults();
 

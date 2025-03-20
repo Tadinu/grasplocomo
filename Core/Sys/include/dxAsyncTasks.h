@@ -55,7 +55,7 @@ public:
 
 	dxAsyncTasks() {}
 
-	void addTask(Params params) {
+	void runTask(Params params) {
 		tasks.push_back(std::async(std::launch::async, asynFunction, params));
 	}
 

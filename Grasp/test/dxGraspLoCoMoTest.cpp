@@ -42,6 +42,9 @@
 #include <string>
 #include <math.h>
 #include <vector>
+#include <filesystem>
+#include <iostream>
+
 #include "dxGraspLoCoMo.h"
 #include "dxPointCloud.h"
 
@@ -81,7 +84,7 @@ void printMsg(string message, string prep = "")
 //						 dx
 // dx = 0.093/2 + 0.06*0.7(=70%)
 
-int main()
+int main(int argc, char** argv)
 {
 	printMsg("LoCoMo Grasping -------- ");
 
@@ -93,7 +96,10 @@ int main()
 	//resolutionFactor: Used to compute the LoCoMo sphere radius
 	grasp.setResolution(0.008);
 
-	string cloudPath = "../../Clouds/wood_cloud.txt";
+	string currentDirPath = std::filesystem::current_path();
+	printMsg(currentDirPath);
+	const char* objectName = (argc > 1) ? argv[1] : "wood";
+	string cloudPath = std::string("Clouds/") + objectName + "_cloud.txt";
 	printMsg("Loading: " + cloudPath);
 
 	//Loading the point cloud
@@ -112,15 +118,23 @@ int main()
 		dxGraspLoCoMo::GraspPG70 g = graspResults[i];
 
 		cout << "Grasp #" << i << endl;
+#if DX_GRASP_AS_POS_QUAT
+		dxGripperModel::GraspModel::write_grasp(cout, g.preGrasp);
+		dxGripperModel::GraspModel::write_grasp(cout, g.pose);
+		dxGripperModel::GraspModel::write_grasp(cout, g.postGrasp);
+#else
 		cout << g.getColMajorVector(g.preGrasp) << "|";
 		cout << g.getColMajorVector(g.pose) << "|";
 		cout << g.getColMajorVector(g.postGrasp) << "|";
+#endif
 		cout << g.opening << " | ";
 		cout << g.fs.prob << endl << endl;
 	}
 
 	//Save grasps to file
-	//grasp.saveGrasps("graps_results.txt");
+	string outputPath = std::filesystem::path(currentDirPath).append(std::string(objectName) + "_grasp_results.txt");
+	grasp.saveGrasps(outputPath);
+	printMsg("Grasps generated to: " + outputPath);
 
 	return 0;
 }
