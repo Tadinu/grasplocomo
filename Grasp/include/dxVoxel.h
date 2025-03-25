@@ -242,6 +242,7 @@ public:
 			}
 			elements = tasks.getResults();
 
+#if 0
 			//Color cloud
 			auto _min_max = std::minmax_element(elements.begin(), elements.end(),
 				[](Leaf e1, Leaf e2)
@@ -251,6 +252,7 @@ public:
 
 			double _min = _min_max.first->locomo_;
 			double _max = _min_max.second->locomo_;
+#endif
 		}
 
 		pair<vector<int>, vector<float>> getPointsInSphere(dxPointCloud::PointT p, double radius) {

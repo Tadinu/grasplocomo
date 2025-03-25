@@ -685,7 +685,7 @@ public:
         {
             if (isHeader)
             {
-                os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability (Matrix as Col vectors)" << endl;
+                os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability" << endl;
                 return;
             }
 #if DX_GRASP_AS_POS_QUAT
@@ -856,7 +856,7 @@ public:
         {
             if (isHeader)
             {
-                os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability | gripper close | gripper open (Matrix as Col vectors)" << endl;
+                os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability | gripper close | gripper open" << endl;
                 return;
             }
             GraspModel::save(os, false, false);

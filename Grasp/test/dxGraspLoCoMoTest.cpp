@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 	string currentDirPath = std::filesystem::current_path();
 	printMsg(currentDirPath);
 	const char* objectName = (argc > 1) ? argv[1] : "wood";
-	string cloudPath = std::string("Clouds/") + objectName + "_cloud.txt";
+	string cloudPath = std::filesystem::path(currentDirPath).append(std::string("Clouds/") + objectName + "_cloud.txt");
 	printMsg("Loading: " + cloudPath);
 
 	//Loading the point cloud
