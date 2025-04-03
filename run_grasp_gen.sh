@@ -1,1 +1,2 @@
-./build/Grasp/dxTestGraspLoCoMo $1
+OBJECT_TYPE=$1
+./build/Grasp/dxTestGraspLoCoMo $OBJECT_TYPE
