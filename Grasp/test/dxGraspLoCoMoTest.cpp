@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 	printMsg("LoCoMo Grasping -------- ");
 
 	dxPointCloud cloud;
-	dxGraspLoCoMo grasp;
+	dxGraspLoCoMo<dxGripperModel::GraspModelRobotiq2F85> grasp;
 
 	//IMPORTANT 
 	//downsampling: resolution of the point cloud
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 
 	//Computing the grasps
 	printMsg("Computing grasps...");
-	dxGraspLoCoMo::GraspPG70Vec graspResults = grasp.locomoGrasp(cloud).grasps;
+	const auto& graspResults = grasp.locomoGrasp(cloud).grasps;
 	if (!graspResults.size())
 		cout << "No grasps found" << endl;
 
@@ -115,13 +115,13 @@ int main(int argc, char** argv)
 	int Ngrasps = 10;
 	cout << "pre-grasp pose | grasp pose | post-grasp pose | gripper opening | score" << endl;
 	for (int i = 0; i < min(Ngrasps, static_cast<int>(graspResults.size())); i++) {	
-		dxGraspLoCoMo::GraspPG70 g = graspResults[i];
+		const auto& g = graspResults[i];
 
 		cout << "Grasp #" << i << endl;
 #if DX_GRASP_AS_POS_QUAT
-		dxGripperModel::GraspModel::write_grasp(cout, g.preGrasp);
-		dxGripperModel::GraspModel::write_grasp(cout, g.pose);
-		dxGripperModel::GraspModel::write_grasp(cout, g.postGrasp);
+		dxGripperModel::GraspSuite::write_grasp(cout, g.preGrasp);
+		dxGripperModel::GraspSuite::write_grasp(cout, g.pose);
+		dxGripperModel::GraspSuite::write_grasp(cout, g.postGrasp);
 #else
 		cout << g.getColMajorVector(g.preGrasp) << "|";
 		cout << g.getColMajorVector(g.pose) << "|";

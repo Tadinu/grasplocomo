@@ -196,11 +196,9 @@ public:
 
 			kdtree.setInputCloud(cloud);
 
-			typedef struct Params {
-				int id;
-			};
+			struct Params { int id; };
 
-			auto computeLeaf = [&](Params p) -> Leaf {
+			auto computeLeaf = [&](const Params& p) -> Leaf {
 				int i = p.id;
 				Leaf leaf;
 				vector<int> indexes = getPointsInSphere(cloud.getPoint(i), resolution).first;
@@ -236,9 +234,7 @@ public:
 			dxAsyncTasks<Params, Leaf> tasks;
 			tasks.setAsyncFunction(computeLeaf);
 			for (int i = 0; i < cloud.size(); i++) {
-				Params p;
-				p.id = i;
-				tasks.runTask(p);
+				tasks.runTask(Params{.id = i});
 			}
 			elements = tasks.getResults();
 
