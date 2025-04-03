@@ -80,6 +80,7 @@ public:
                  << "Ngrasps " << grasps.size()  << endl;
         }
     };
+    GraspResult results;
 
     void setResolution(double downsampling = 0.008, int resolutionFactor = 4);
     GraspResult locomoGrasp(dxPointCloud cloud);
@@ -102,8 +103,6 @@ protected:
     dxVoxel::VoxelData gripper;
     double resolution;
     double downsampling;
-
-    GraspResult results;
 };
 
 #endif // !DX_GRASP_LOCOMO_INCLUDE

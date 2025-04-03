@@ -722,7 +722,7 @@ public:
     //						 dx
     // dx = 0.093/2 + 0.06*0.7(=70%)
     //
-    // Feature Frame
+    // Feature Frame: Right-handed
     //				X
     //			o -> Y
     //			|
@@ -734,8 +734,8 @@ public:
 
     struct GraspModelPG70 : public GraspModel
     {
-        double dx;
-        double dxf;
+        double dz;
+        double dzf;
         double opening;
         double openingMin;
         double openingMax;
@@ -765,9 +765,21 @@ public:
             double contactLocRatio = 0.8;
             collisionZmin = 0.62;
             double dxPad = 2 * (1 - contactLocRatio)*fingerxyz[0];
-            dxf = -(gripperxyz[0] + fingerxyz[0]) / 2.0;
-            dx = -(gripperxyz[0] / 2.0 + fingerxyz[0] * contactLocRatio);
+            dzf = -(gripperxyz[0] + fingerxyz[0] / 2.0);
+            dz = -(gripperxyz[0] + fingerxyz[0] * contactLocRatio);
 
+#if 1
+            TfeatureInRgripper << 1,  0, 0, 0,
+                                  0,  1, 0, 0,
+                                  0,  0, 1, dz,
+                                  0,  0, 0, 1;
+
+            // Identity, offset 0.1 along Z
+            TpreGraspInRgripper << 1, 0, 0, 0,
+                                   0, 1, 0, 0,
+                                   0, 0, 1, 0.1,
+                                   0, 0, 0, 1;
+#else
             // Rot around Z 90deg, offset dx along X
             TfeatureInRgripper << 0, -1, 0, dx,
                                   1,  0, 0, 0,
@@ -779,6 +791,7 @@ public:
                                    0, 1, 0, 0,
                                    0, 0, 1, 0,
                                    0, 0, 0, 1;
+#endif
 
             OffsetPostGraspInRbase << 0, 0, 0.2;
 
@@ -809,12 +822,12 @@ public:
                 throw runtime_error("setFingersOffset() fingers != 2");
             }
 
-            fingersClose[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dxf, -(fingerxyz[1] + opening) / 2.0, 0)).matrix();
-            fingersClose[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dxf, (fingerxyz[1] + opening) / 2.0, 0)).matrix();
-            fingersOpen[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dxf, -(fingerxyz[1] + openingMax) / 2.0, 0)).matrix();
-            fingersOpen[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dxf, (fingerxyz[1] + openingMax) / 2.0, 0)).matrix();
-            fingerPads[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dx, -(fingerxyz[1] + opening) / 2.0, 0)).matrix();
-            fingerPads[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dx, (fingerxyz[1] + opening) / 2.0, 0)).matrix();
+            fingersClose[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dzf, -(fingerxyz[1] + opening) / 2.0, 0)).matrix();
+            fingersClose[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dzf, (fingerxyz[1] + opening) / 2.0, 0)).matrix();
+            fingersOpen[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dzf, -(fingerxyz[1] + openingMax) / 2.0, 0)).matrix();
+            fingersOpen[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dzf, (fingerxyz[1] + openingMax) / 2.0, 0)).matrix();
+            fingerPads[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dz, -(fingerxyz[1] + opening) / 2.0, 0)).matrix();
+            fingerPads[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dz, (fingerxyz[1] + opening) / 2.0, 0)).matrix();
         }
 
         void setPose(Eigen::Matrix4d pose, double opening)
