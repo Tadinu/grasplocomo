@@ -215,7 +215,7 @@ public:
             return computeRef(features[0], features[1], false);
         }
 
-        std::vector<double> getPoint(int i)
+        std::vector<double> getPoint(int i) const
         {
             if (i >= features.size())
                 return std::vector<double>();
@@ -223,12 +223,12 @@ public:
             return features[i].second.first.get();
         }
 
-        Feature getInLocalCoord()
+        Feature getInLocalCoord() const
         {
             Feature feat;
             Eigen::Matrix4d T = ref.inverse();
             feat.setRef(T);
-            for (auto f : features)
+            for (const auto& f : features)
             {
                 Eigen::Vector3d pj = f.second.first.getVector();
                 Eigen::Vector3d nj = f.second.second.getVector();
