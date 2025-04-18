@@ -1,7 +1,10 @@
+build
+gcc_build
 lib
-
 Build.vc17
 Build.vc.17
 Build.vc.19
 nanoflann-master
 eigen-3.3.9
+.idea/
+.vscode/

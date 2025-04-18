@@ -9,7 +9,7 @@
 /*
 * BSD 3 - Clause License
 *
-* Copyright(c) 2021, Maxime Adjigble 
+* Copyright(c) 2021, Maxime Adjigble
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,12 @@
 
 #include <iostream>
 #include <string>
-#include "dxPoint3.h"
 #include <vector>
-#include <unordered_map>
-#include "dxSearchTree.h"
 #include <map>
+
+// GraspLoCoMo
+#include "Core/Math/include/dxPoint3.h"
+#include "Core/Search/include/dxSearchTree.h"
 
 using namespace std;
 
@@ -670,7 +671,7 @@ public:
             return Eigen::Map<Eigen::RowVectorXd>(M.data(), M.size());
         }
 
-        static void write_grasp(std::ostream& os, const Eigen::Matrix4d& grasp) 
+        static void write_grasp(std::ostream& os, const Eigen::Matrix4d& grasp)
         {
             Eigen::Vector3d pos = grasp.block<3, 1>(0, 3);
             Eigen::Quaterniond quat(Eigen::Matrix3d(grasp.block<3, 3>(0, 0)));
@@ -828,15 +829,15 @@ public:
             NrotSampled = 10;
             collisionMaxRatio = 0.0;
             collisionNmaxPts = 0;
-            fingerxyz = { 0.06, 0.016, 0.03 };
-            gripperxyz = { 0.093, 0.112, 0.08 };
+            // https://schunk.com/us/en/gripping-systems/parallel-gripper/pg/pg-70/p/000000000000306095
+            fingerxyz = { 0.016, 0.03, 0.06 };
+            gripperxyz = { 0.112, 0.08, 0.093 };
             double contactLocRatio = 0.8;
             collisionZmin = 0.62;
-            double dzPad = 2 * (1 - contactLocRatio)*fingerxyz[0];
-            dzf = -(gripperxyz[0] + fingerxyz[0] / 2.0);
-            dz = -(gripperxyz[0] + fingerxyz[0] * contactLocRatio);
+            double dzPad = 2 * (1 - contactLocRatio)*fingerxyz[2];
+            dzf = gripperxyz[2] + fingerxyz[2] / 2.0;
+            dz = gripperxyz[2] + fingerxyz[2] * contactLocRatio;
 
-#if 1
             TfeatureInRgripper << 1,  0, 0, 0,
                                   0,  1, 0, 0,
                                   0,  0, 1, dz,
@@ -847,27 +848,14 @@ public:
                                    0, 1, 0, 0,
                                    0, 0, 1, 0.1,
                                    0, 0, 0, 1;
-#else
-            // Rot around Z 90deg, offset dx along X
-            TfeatureInRgripper << 0, -1, 0, dx,
-                                  1,  0, 0, 0,
-                                  0,  0, 1, 0,
-                                  0,  0, 0, 1;
-
-            // Identity, offset 0.1 along X
-            TpreGraspInRgripper << 1, 0, 0, 0.1,
-                                   0, 1, 0, 0,
-                                   0, 0, 1, 0,
-                                   0, 0, 0, 1;
-#endif
 
             OffsetPostGraspInRbase << 0, 0, 0.2;
 
             bboxGripper = BBox(gripperxyz[0], gripperxyz[1], gripperxyz[2]);
             fingersClose.push_back(Finger(BBox(fingerxyz[0], fingerxyz[1], fingerxyz[2])));
             fingersClose.push_back(Finger(BBox(fingerxyz[0], fingerxyz[1], fingerxyz[2])));
-            fingerPads.push_back(Finger(BBox(dzPad, fingerxyz[1], fingerxyz[2])));
-            fingerPads.push_back(Finger(BBox(dzPad, fingerxyz[1], fingerxyz[2])));
+            fingerPads.emplace_back(Finger(BBox(fingerxyz[0], fingerxyz[1], dzPad)));
+            fingerPads.emplace_back(Finger(BBox(fingerxyz[0], fingerxyz[2], dzPad)));
 
             for (const Finger& f : fingersClose)
             {

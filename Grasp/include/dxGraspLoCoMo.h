@@ -49,11 +49,12 @@
 #include <random>
 #include <time.h>
 #include <exception>
-#include "dxGripperModel.h"
-#include "dxVoxel.h"
-#include "dxSearchTree.h"
-//#include "dxVision.h"
-#include "dxAsyncTasks.h"
+
+// GraspLoCoMo
+#include "Core/Sys/include/dxAsyncTasks.h"
+#include "Core/Search/include/dxSearchTree.h"
+#include "Grasp/include/dxGripperModel.h"
+#include "Grasp/include/dxVoxel.h"
 
 
 template <typename TGraspModel>

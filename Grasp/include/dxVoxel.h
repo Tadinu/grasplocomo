@@ -48,8 +48,10 @@
 #include <vector>
 #include <unordered_map>
 #include <Eigen/Dense>
-#include "dxAsyncTasks.h"
-#include "dxSearchTree.h"
+
+// GraspLoCoMo
+#include "Core/Sys/include/dxAsyncTasks.h"
+#include "Core/Search/include/dxSearchTree.h"
 
 using namespace std;
 

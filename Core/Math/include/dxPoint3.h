@@ -45,11 +45,11 @@
 #include <iostream>
 #include <string>
 #include <Eigen/Core>
-#include <Eigen/Dense>
-#include "dxPoint3.h"
 #include <vector>
 #include <array>
 
+// GraspLoCoMo
+#include "Core/Math/include/dxPoint3.h"
 
 class dxP3
 {
