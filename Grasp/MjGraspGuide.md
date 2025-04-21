@@ -1,5 +1,7 @@
 # INTRO
-**Note**: This guide is for only antipodal grasp pose generation.
+**Note**: 
+* This branch/fork is WIP, communication with the original author for support is ongoing.
+* This guide is for only antipodal grasp pose generation.
 
 `GraspLoCoMo` is a grasp pose detection library to help generate antipodal grasps from a point cloud, be it representing
 a single object or a cluttered scene of various objects in the environment.
@@ -101,7 +103,7 @@ pcd viewer
 > - Output grasp pose is in clunky matrix instead of pos + quat format
 
 Fork of GraspLoCoMo: https://github.com/Tadinu/grasplocomo/tree/dev
-- Configs for Robotiq2F85
+- Configs for Robotiq2F85 (WIP)
 - Output grasp pose as pos + quat format
 
 [//]: # (===========================)
