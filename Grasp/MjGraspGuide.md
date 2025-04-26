@@ -98,11 +98,12 @@ pcd viewer
 > - The grasps as well as pre-provided clouds are outputted in the global frame. Those clouds are also not centered around {0,0,0}.
 -> Output grasps are NOT relative to object point cloud!<br>
 > - Those clouds themselves are sampled directly from a camera, without accompanying original meshes.<br>
+> - Gripper model has different geometry orientation (fingers pointing toward -X) compared to the canonical one (fingers pointing toward +Z). Also, its pivot is NOT at the base link's bottom but at the center of the whole gripper body itself.
 -> NOT DIRECTLY USABLE for ones that want to output grasps as relative to a target mesh-object.<br>
 > - Example demo is only for SchunkPG70 Gripper<br>
 > - Output grasp pose is in clunky matrix instead of pos + quat format
 
-Fork of GraspLoCoMo: https://github.com/Tadinu/grasplocomo/tree/dev
+Fork of GraspLoCoMo: https://github.com/Tadinu/grasplocomo/tree/mjapp
 - Configs for Robotiq2F85 (WIP)
 - Output grasp pose as pos + quat format
 
