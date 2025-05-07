@@ -64,8 +64,8 @@ namespace mju = ::mujoco::sample_util;
 
 static std::vector<std::pair<std::vector<double>, std::vector<double>>> obj_pointcloud;
 static constexpr float VOXEL_SIZE = 0.003;
-static constexpr bool USE_SCHUNK_PG70 = true;
-static const std::string DEFAULT_OBJECT_TYPE = "mug";
+static constexpr bool USE_SCHUNK_PG70 = false;
+static const std::string DEFAULT_OBJECT_TYPE = "mj_mug";
 
 // Simulate states not contained in MuJoCo structures
 class Simulate : public SimulateBase {
