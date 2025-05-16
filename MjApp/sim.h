@@ -32,7 +32,9 @@
 
 #pragma once
 
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include <Windows.h>
+#endif
 #include <stddef.h>
 
 #include <atomic>
@@ -59,6 +61,7 @@
 #include "sim_base.h"
 
 #define MJAPP_GRASP_POSE_GENERATION (1)
+#define DX_GRASP_AS_POS_QUAT (0)
 
 using namespace std;
 
@@ -399,14 +402,14 @@ protected:
 
       cout << "Grasp #" << i << endl;
 #if DX_GRASP_AS_POS_QUAT
-      //dxGripperModel::GraspSuite::write_grasp(cout, g.preGrasp);
-      //dxGripperModel::GraspSuite::write_grasp(cout, g.pose);
-      //dxGripperModel::GraspSuite::write_grasp(cout, g.postGrasp);
-      //cout << g.pose << endl;
+      dxGripperModel::GraspSuite::write_grasp(cout, g.preGrasp);
+      dxGripperModel::GraspSuite::write_grasp(cout, g.pose);
+      dxGripperModel::GraspSuite::write_grasp(cout, g.postGrasp);
+      cout << g.pose << endl;
 #else
-      //cout << g.getColMajorVector(g.preGrasp) << endl;
+      cout << g.getColMajorVector(g.preGrasp) << endl;
       cout << g.getColMajorVector(g.pose) << endl;
-      //cout << g.getColMajorVector(g.postGrasp) << endl;
+      cout << g.getColMajorVector(g.postGrasp) << endl;
 #endif
       cout << g.opening << " | ";
       cout << g.fs.prob << endl << endl;

@@ -1,1 +1,1 @@
-./build/Grasp/dxTestGraspLoCoMo $1
+./build/bin/dxTestGraspLoCoMo $1

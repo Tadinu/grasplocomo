@@ -193,23 +193,12 @@ if (NOT TARGET lodepng)
     endif ()
 endif ()
 
-# # Eigen3
-# find_package(Eigen3 REQUIRED)
-# message("EIGEN3_INCLUDE ${EIGEN3_INCLUDE_DIR}")
-# include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
-# if (${CMAKE_CXX_STANDARD} EQUAL "20")
-    # add_compile_definitions(EIGEN_HAS_STD_RESULT_OF=0)
-# endif ()
-
-
 # Eigen3
 #Look for EIGEN3
 SET(EIGEN3_INCLUDE "${CMAKE_SOURCE_DIR}/ThirdParty/eigen" )
 find_package(Eigen3 REQUIRED)
 message("EIGEN3_INCLUDE ${EIGEN3_INCLUDE_DIR}")
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
-
-
 
 if (${CMAKE_CXX_STANDARD} EQUAL "20")
     add_compile_definitions(EIGEN_HAS_STD_RESULT_OF=0)
@@ -218,5 +207,13 @@ endif ()
 set(MJGRASPLOCOMO_COMPILE_OPTIONS "${AVX_COMPILE_OPTIONS}" "${EXTRA_COMPILE_OPTIONS}")
 set(MJGRASPLOCOMO_LINK_OPTIONS "${EXTRA_LINK_OPTIONS}")
 
+# [MjApp] - Grasps Visualizer
 add_subdirectory(MjApp)
+
+# [dxGraspLoCoMo] - Grasps generation to txt
+OPTION(DX_BUILD_TEST "Build Test" ON)
+
+#NANOFLANN
+SET(NANO_FLANN_INCLUDE "${CMAKE_SOURCE_DIR}/ThirdParty/nanoflann/include")
+add_subdirectory(Grasp)
 

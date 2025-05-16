@@ -42,6 +42,7 @@
 #include <string>
 #include <math.h>
 #include <vector>
+#include <filesystem>
 #include "dxGraspLoCoMo.h"
 #include "dxPointCloud.h"
 
@@ -81,47 +82,48 @@ void printMsg(string message, string prep = "")
 //						 dx
 // dx = 0.093/2 + 0.06*0.7(=70%)
 
-//int main()
-//{
-//	printMsg("LoCoMo Grasping -------- ");
-//
-//	dxPointCloud cloud;
-//	dxGraspLoCoMo grasp;
-//
-//	//IMPORTANT 
-//	//downsampling: resolution of the point cloud
-//	//resolutionFactor: Used to compute the LoCoMo sphere radius
-//	grasp.setResolution(0.008);
-//
-//	string cloudPath = "../../Clouds/mustard_cloud.txt";
-//	printMsg("Loading: " + cloudPath);
-//
-//	//Loading the point cloud
-//	cloud.loadFromFile(cloudPath);
-//
-//	//Computing the grasps
-//	printMsg("Computing grasps...");
-//	dxGraspLoCoMo::GraspPG70Vec graspResults = grasp.locomoGrasp(cloud).grasps;
-//	if (!graspResults.size())
-//		cout << "No grasps found" << endl;
-//
-//	//Display the 10 highest ranked grasps
-//	int Ngrasps = 10;
-//	cout << "pre-grasp pose | grasp pose | post-grasp pose | gripper opening | score" << endl;
-//	for (int i = 0; i < min(Ngrasps, static_cast<int>(graspResults.size())); i++) {	
-//		dxGraspLoCoMo::GraspPG70 g = graspResults[i];
-//
-//		cout << "Grasp #" << i << endl;
-//		cout << g.pose << endl;
-//		//cout << g.getColMajorVector(g.preGrasp) << "|";
-//		//cout << g.getColMajorVector(g.pose) << "|";
-//		//cout << g.getColMajorVector(g.postGrasp) << "|";
-//		//cout << g.opening << " | ";
-//		//cout << g.fs.prob << endl << endl;
-//	}
-//
-//	//Save grasps to file
-//	//grasp.saveGrasps("graps_results.txt");
-//
-//	return 0;
-//}
+int main()
+{
+	printMsg("LoCoMo Grasping -------- ");
+
+	dxPointCloud cloud;
+	dxGraspLoCoMo grasp;
+
+	//IMPORTANT
+	//downsampling: resolution of the point cloud
+	//resolutionFactor: Used to compute the LoCoMo sphere radius
+	grasp.setResolution(0.008);
+
+  std::printf("Current dir: %s\n", std::filesystem::current_path().string().c_str());
+	string cloudPath = std::filesystem::current_path().string() + "/Clouds/mustard_cloud.txt";
+	printMsg("Loading: " + cloudPath);
+
+	//Loading the point cloud
+	cloud.loadFromFile(cloudPath);
+
+	//Computing the grasps
+	printMsg("Computing grasps...");
+	dxGraspLoCoMo::GraspPG70Vec graspResults = grasp.locomoGrasp(cloud).grasps;
+	if (!graspResults.size())
+		cout << "No grasps found" << endl;
+
+	//Display the 10 highest ranked grasps
+	int Ngrasps = 10;
+	cout << "pre-grasp pose | grasp pose | post-grasp pose | gripper opening | score" << endl;
+	for (int i = 0; i < min(Ngrasps, static_cast<int>(graspResults.size())); i++) {
+		dxGraspLoCoMo::GraspPG70 g = graspResults[i];
+
+		cout << "Grasp #" << i << endl;
+		cout << g.pose << endl;
+		cout << g.getColMajorVector(g.preGrasp) << "|";
+		cout << g.getColMajorVector(g.pose) << "|";
+		cout << g.getColMajorVector(g.postGrasp) << "|";
+		cout << g.opening << " | ";
+		cout << g.fs.prob << endl << endl;
+	}
+
+	//Save grasps to file
+	grasp.saveGrasps("graps_results.txt");
+
+	return 0;
+}
