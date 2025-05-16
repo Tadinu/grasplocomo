@@ -29,8 +29,9 @@ If you use GraspLoCoMo in your work, please cite our [IROS'18 paper](https://iee
 ### Software Requirements
 GraspLoCoMo requires the following software:
 
-* [Visual Studio](https://visualstudio.microsoft.com/)
+* [Visual Studio](https://visualstudio.microsoft.com) or [CLion](https://www.jetbrains.com/clion)
 * [CMake](https://cmake.org/)
+* [MuJoCo](https://mujoco.org), which is automatically setup by building using CMake
   
 and the following mandatory libraries
 * [Eigen](http://eigen.tuxfamily.org/)
@@ -38,7 +39,7 @@ and the following mandatory libraries
 
 **Note** Eigen and Nanoflann are headers-only libraries and can be easily integrated using CMake. Both are added as git submodules in the ThirdParty folder.
 
-**Windows:** 
+**Notes for Windows:** 
 Install Visual Studio and CMake. Clone/Download Eigen and Nanoflann in the **_ThirdParty_** folder. 
 In the CMakeLists.txt file, change the value of the variables _EIGEN3_INCLUDE_ and _NANO_FLANN_INCLUDE_ to the path of Eigen and Nanoflann.
 Open CMake and configure the project.
@@ -59,7 +60,7 @@ Open the solution using Visual Studio and set the **TestdxGraspLoCoMo** as Start
 
 **_Note (Release mode):_** By default the project will be in Debug mode. For some reason the execution of the code is much slower in this mode, set the poject to Release to get better performances. This will be fixed in future!!
 
-**_Note for Linux:_** The code has been tested with Ubuntu 20.04.4 and cmake (without Visual Studio).
+**_Note for Linux:_** The code has been tested with Ubuntu 20.04.4, 22.04.5 and cmake (without Visual Studio).
 
 ### Folder Structure
 - Grasp: LoCoMo Grasping code
@@ -69,6 +70,14 @@ Open the solution using Visual Studio and set the **TestdxGraspLoCoMo** as Start
 - Clouds: Example point clouds
 - Core: Utility modules and functions
 - ThirdParty: Empty folder where the required libraries are installed
+
+### How to build
+Configure default target object: [DEFAULT_OBJECT_TYPE](https://github.com/maximeadjigble/grasplocomo/blob/main/MjApp/sim.h)
+`./build_mj_grasplocomo.sh`
+
+### How to run
+**mj_grasplocomo**: `./build/bin/mj_grasplocomo`
+**dxTestGraspLoCoMo**: `./run_grasp_gen.sh`
 
 ## License
 
