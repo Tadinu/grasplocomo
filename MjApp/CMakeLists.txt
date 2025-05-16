@@ -53,22 +53,21 @@ option(SIMULATE_GLFW_DYNAMIC_SYMBOLS "Whether to resolve GLFW symbols dynamicall
 add_library(libmjgrasplocomo STATIC $<TARGET_OBJECTS:mujoco::platform_ui_adapter>)
 set_target_properties(libmjgrasplocomo PROPERTIES OUTPUT_NAME mj_grasplocomo)
 add_library(mujoco::libmjgrasplocomo ALIAS libmjgrasplocomo)
+
+# Get the source files of the locomo Grasp library
+FILE(GLOB_RECURSE LOCOMO_GRASP_SOURCES_FILES "${PROJECT_SOURCE_DIR}/Grasp/src/*.cpp")
+FILE(GLOB_RECURSE LOCOMO_GRASP_INCLUDE_FILES "${PROJECT_SOURCE_DIR}/Core/Sys/include/*.h"
+                                     "${PROJECT_SOURCE_DIR}/Core/Math/include/*.h"
+                                     "${PROJECT_SOURCE_DIR}/Core/Search/include/*.h"
+                                     "${PROJECT_SOURCE_DIR}/Grasp/include/*.h")
 target_sources(
   libmjgrasplocomo
   PUBLIC sim_base.h sim.h
          Utils/core_util.h
          Utils/math_util.h
-         ${PROJECT_SOURCE_DIR}/Core/Sys/include/dxAsyncTasks.h
-         ${PROJECT_SOURCE_DIR}/Core/Sys/include/dxFile.h
-         ${PROJECT_SOURCE_DIR}/Core/Math/include/dxFunctions.h
-         ${PROJECT_SOURCE_DIR}/Core/Math/include/dxPoint3.h
-         ${PROJECT_SOURCE_DIR}/Core/Search/include/dxPointCloud.h
-         ${PROJECT_SOURCE_DIR}/Core/Search/include/dxSearchTree.h
-         ${PROJECT_SOURCE_DIR}/Grasp/include/dxGraspLoCoMo.h
-         ${PROJECT_SOURCE_DIR}/Grasp/include/dxGripperModel.h
-         ${PROJECT_SOURCE_DIR}/Grasp/include/dxVoxel.h
+         ${LOCOMO_GRASP_INCLUDE_FILES}
   PRIVATE sim_base.cc
-          ${PROJECT_SOURCE_DIR}/Grasp/src/dxGraspLoCoMo.cpp
+          ${LOCOMO_GRASP_SOURCES_FILES}
           $<TARGET_OBJECTS:mujoco::platform_ui_adapter>
 )
 
@@ -76,6 +75,10 @@ target_include_directories(libmjgrasplocomo
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..
   ${PROJECT_SOURCE_DIR}/ThirdParty/nanoflann/include/
+  ${PROJECT_SOURCE_DIR}/Core/Sys/include/
+  ${PROJECT_SOURCE_DIR}/Core/Math/include/
+  ${PROJECT_SOURCE_DIR}/Core/Search/include/
+  ${PROJECT_SOURCE_DIR}/Grasp/include
 )
 target_compile_options(libmjgrasplocomo PRIVATE ${MJGRASPLOCOMO_COMPILE_OPTIONS})
 target_link_libraries(libmjgrasplocomo PUBLIC
@@ -109,6 +112,7 @@ if(SIMULATE_BUILD_EXECUTABLE)
   endif()
 
   add_executable(mj_grasplocomo main.cc ${SIMULATE_RESOURCE_FILES})
+  #target_compile_features(mj_grasplocomo PUBLIC cxx_std_17)
   target_compile_options(mj_grasplocomo PUBLIC ${MJGRASPLOCOMO_COMPILE_OPTIONS})
   if(WIN32)
     add_custom_command(
@@ -127,6 +131,10 @@ if(SIMULATE_BUILD_EXECUTABLE)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${PROJECT_SOURCE_DIR}/ThirdParty/nanoflann/include/
+    ${PROJECT_SOURCE_DIR}/Core/Sys/include/
+      ${PROJECT_SOURCE_DIR}/Core/Math/include/
+      ${PROJECT_SOURCE_DIR}/Core/Search/include/
+      ${PROJECT_SOURCE_DIR}/Grasp/include
   )
 
   target_link_libraries(

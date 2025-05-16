@@ -48,10 +48,8 @@
 #include <vector>
 #include <unordered_map>
 #include <Eigen/Dense>
-
-// GraspLoCoMo
-#include "Core/Sys/include/dxAsyncTasks.h"
-#include "Core/Search/include/dxSearchTree.h"
+#include "dxAsyncTasks.h"
+#include "dxSearchTree.h"
 
 using namespace std;
 
@@ -198,9 +196,11 @@ public:
 
 			kdtree.setInputCloud(cloud);
 
-			struct Params { int id; };
+			typedef struct Params {
+				int id;
+			};
 
-			auto computeLeaf = [&](const Params& p) -> Leaf {
+			auto computeLeaf = [&](Params p) -> Leaf {
 				int i = p.id;
 				Leaf leaf;
 				vector<int> indexes = getPointsInSphere(cloud.getPoint(i), resolution).first;
@@ -236,11 +236,12 @@ public:
 			dxAsyncTasks<Params, Leaf> tasks;
 			tasks.setAsyncFunction(computeLeaf);
 			for (int i = 0; i < cloud.size(); i++) {
-				tasks.runTask(Params{.id = i});
+				Params p;
+				p.id = i;
+				tasks.addTask(p);
 			}
 			elements = tasks.getResults();
 
-#if 0
 			//Color cloud
 			auto _min_max = std::minmax_element(elements.begin(), elements.end(),
 				[](Leaf e1, Leaf e2)
@@ -250,7 +251,6 @@ public:
 
 			double _min = _min_max.first->locomo_;
 			double _max = _min_max.second->locomo_;
-#endif
 		}
 
 		pair<vector<int>, vector<float>> getPointsInSphere(dxPointCloud::PointT p, double radius) {

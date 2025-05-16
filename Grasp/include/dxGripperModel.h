@@ -9,7 +9,7 @@
 /*
 * BSD 3 - Clause License
 *
-* Copyright(c) 2021, Maxime Adjigble
+* Copyright(c) 2021, Maxime Adjigble 
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -44,16 +44,13 @@
 
 #include <iostream>
 #include <string>
+#include "dxPoint3.h"
 #include <vector>
+#include <unordered_map>
+#include "dxSearchTree.h"
 #include <map>
 
-// GraspLoCoMo
-#include "Core/Math/include/dxPoint3.h"
-#include "Core/Search/include/dxSearchTree.h"
-
 using namespace std;
-
-#define DX_GRASP_AS_POS_QUAT (1)
 
 class dxGripperModel
 {
@@ -216,7 +213,7 @@ public:
             return computeRef(features[0], features[1], false);
         }
 
-        std::vector<double> getPoint(int i) const
+        std::vector<double> getPoint(int i)
         {
             if (i >= features.size())
                 return std::vector<double>();
@@ -224,12 +221,12 @@ public:
             return features[i].second.first.get();
         }
 
-        Feature getInLocalCoord() const
+        Feature getInLocalCoord()
         {
             Feature feat;
             Eigen::Matrix4d T = ref.inverse();
             feat.setRef(T);
-            for (const auto& f : features)
+            for (auto f : features)
             {
                 Eigen::Vector3d pj = f.second.first.getVector();
                 Eigen::Vector3d nj = f.second.second.getVector();
@@ -603,7 +600,7 @@ public:
         }
     };
 
-    struct GraspSuite
+    struct GraspModel
     {
         Eigen::Matrix4d pose;
         Eigen::Matrix4d preGrasp;
@@ -625,7 +622,7 @@ public:
             return pose;
         }
 
-        virtual void setPose(Eigen::Matrix4d pose, double approxOverlap = 0.8)
+        void setPose(Eigen::Matrix4d pose, double approxOverlap = 0.8)
         {
             this->pose = pose;
             bboxGripper.setPose(pose);
@@ -671,35 +668,17 @@ public:
             return Eigen::Map<Eigen::RowVectorXd>(M.data(), M.size());
         }
 
-        static void write_grasp(std::ostream& os, const Eigen::Matrix4d& grasp)
-        {
-            Eigen::Vector3d pos = grasp.block<3, 1>(0, 3);
-            Eigen::Quaterniond quat(Eigen::Matrix3d(grasp.block<3, 3>(0, 0)));
-            quat.normalize();
-            os << pos.transpose() << " " << quat.w() << " "
-                                         << quat.x() << " "
-                                         << quat.y() << " "
-                                         << quat.z() << "|";
-        }
-
         void save(std::ostream& os, bool isHeader = false, bool isEndl = true)
         {
             if (isHeader)
             {
-                os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability" << endl;
+                os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability (Matrix as Col vectors)" << endl;
                 return;
             }
-#if DX_GRASP_AS_POS_QUAT
-            write_grasp(os, preGrasp);
-            write_grasp(os, pose);
-            write_grasp(os, postGrasp);
-#else
             os << getColMajorVector(preGrasp) << "|";
             os << getColMajorVector(pose) << "|";
             os << getColMajorVector(postGrasp) << "|";
-#endif
             os << fs.prob;
-
             if (isEndl)
                 os << endl;
         }
@@ -723,7 +702,7 @@ public:
     //						 dx
     // dx = 0.093/2 + 0.06*0.7(=70%)
     //
-    // Feature Frame: Right-handed
+    // Feature Frame
     //				X
     //			o -> Y
     //			|
@@ -733,25 +712,72 @@ public:
     // 0.024  ___/
     //			 | 0.03
 
-
-    struct GraspModelBase : public GraspSuite
+    struct GraspModelPG70 : public GraspModel
     {
-        double dz = 0;
-        double dzf = 0;
-        double opening = 0;
-        double openingMin = 0;
-        double openingMax = 0;
-        double frictionAngle = 0;
-        double collisionZmin = 0;
-        double collisionMaxRatio = 1.0;
-        int collisionNmaxPts = 0;
-        int NrotSampled = 0;
+        double dx;
+        double dxf;
+        double opening;
+        double openingMin;
+        double openingMax;
+        double frictionAngle;
+        double collisionZmin;
+        double collisionMaxRatio;
+        int collisionNmaxPts;
+        int NrotSampled;
         Eigen::Matrix4d TfeatureInRgripper;
         Eigen::Matrix4d TgripperInfeature;
         Eigen::Matrix4d TpreGraspInRgripper;
         Eigen::Vector3d OffsetPostGraspInRbase;
         std::array<double, 3> fingerxyz;
         std::array<double, 3> gripperxyz;
+
+        GraspModelPG70()
+        {
+            opening = 0;
+            openingMin = 0.001;
+            openingMax = 0.05;
+            frictionAngle = 45 * M_PI / 180.0;
+            NrotSampled = 10;
+            collisionMaxRatio = 0.0;
+            collisionNmaxPts = 0;
+            fingerxyz = { 0.06, 0.016, 0.03 };
+            gripperxyz = { 0.093, 0.112, 0.08 };
+            double contactLocRatio = 0.8;
+            collisionZmin = 0.62;
+            double dxPad = 2 * (1 - contactLocRatio)*fingerxyz[0];
+            dxf = -(gripperxyz[0] + fingerxyz[0]) / 2.0;
+            dx = -(gripperxyz[0] / 2.0 + fingerxyz[0] * contactLocRatio);
+
+            TfeatureInRgripper << 0, -1, 0, dx,
+                               1, 0, 0, 0,
+                               0, 0, 1, 0,
+                               0, 0, 0, 1;
+
+            TpreGraspInRgripper << 1, 0, 0, 0.1,
+                                0, 1, 0, 0,
+                                0, 0, 1, 0,
+                                0, 0, 0, 1;
+
+            OffsetPostGraspInRbase << 0, 0, 0.2;
+
+            bboxGripper = BBox(gripperxyz[0], gripperxyz[1], gripperxyz[2]);
+            fingersClose.push_back(Finger(BBox(fingerxyz[0], fingerxyz[1], fingerxyz[2])));
+            fingersClose.push_back(Finger(BBox(fingerxyz[0], fingerxyz[1], fingerxyz[2])));
+            fingerPads.push_back(Finger(BBox(dxPad, fingerxyz[1], fingerxyz[2])));
+            fingerPads.push_back(Finger(BBox(dxPad, fingerxyz[1], fingerxyz[2])));
+
+            for (Finger f : fingersClose)
+            {
+                fingersOpen.push_back(f);
+            }
+            for (auto& f : fingerPads)
+            {
+                f.setUseMinMaxDim(true, true);
+            }
+
+            setFingersOffset(opening);
+            TgripperInfeature = TfeatureInRgripper.inverse();
+        }
 
         void setFingersOffset(double opening)
         {
@@ -761,24 +787,24 @@ public:
                 throw runtime_error("setFingersOffset() fingers != 2");
             }
 
-            fingersClose[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(0, -(fingerxyz[1] + opening) / 2.0, dzf)).matrix();
-            fingersClose[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(0, (fingerxyz[1] + opening) / 2.0, dzf)).matrix();
-            fingersOpen[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(0, -(fingerxyz[1] + openingMax) / 2.0, dzf)).matrix();
-            fingersOpen[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(0, (fingerxyz[1] + openingMax) / 2.0, dz)).matrix();
-            fingerPads[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(0, -(fingerxyz[1] + opening) / 2.0, dz)).matrix();
-            fingerPads[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(0, (fingerxyz[1] + opening) / 2.0, dz)).matrix();
+            fingersClose[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dxf, -(fingerxyz[1] + opening) / 2.0, 0)).matrix();
+            fingersClose[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dxf, (fingerxyz[1] + opening) / 2.0, 0)).matrix();
+            fingersOpen[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dxf, -(fingerxyz[1] + openingMax) / 2.0, 0)).matrix();
+            fingersOpen[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dxf, (fingerxyz[1] + openingMax) / 2.0, 0)).matrix();
+            fingerPads[0].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dx, -(fingerxyz[1] + opening) / 2.0, 0)).matrix();
+            fingerPads[1].offsetRg = Eigen::Affine3d(Eigen::Translation3d(dx, (fingerxyz[1] + opening) / 2.0, 0)).matrix();
         }
 
-        void setPose(Eigen::Matrix4d pose, double opening) override
+        void setPose(Eigen::Matrix4d pose, double opening)
         {
             this->opening = opening;
             setFingersOffset(opening);
-            GraspSuite::setPose(pose);
+            GraspModel::setPose(pose);
         }
 
         void computePrePostGrasp()
         {
-            GraspSuite::computePrePostGrasp(TpreGraspInRgripper, OffsetPostGraspInRbase);
+            GraspModel::computePrePostGrasp(TpreGraspInRgripper, OffsetPostGraspInRbase);
         }
 
         bool inCollision()
@@ -808,121 +834,16 @@ public:
         {
             if (isHeader)
             {
-                os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability | gripper close | gripper open" << endl;
+                os << "Pregrasp pose | Grasp pose | Postgrasp pose | probability | gripper close | gripper open (Matrix as Col vectors)" << endl;
                 return;
             }
-            GraspSuite::save(os, false, false);
+            GraspModel::save(os, false, false);
             os << "|" << opening;
             os << "|" << openingMax;
             os << endl;
         }
     };
 
-    struct GraspModelPG70: public GraspModelBase
-    {
-        GraspModelPG70()
-        {
-            opening = 0;
-            openingMin = 0.001;
-            openingMax = 0.05;
-            frictionAngle = 45 * M_PI / 180.0;
-            NrotSampled = 10;
-            collisionMaxRatio = 0.0;
-            collisionNmaxPts = 0;
-            // https://schunk.com/us/en/gripping-systems/parallel-gripper/pg/pg-70/p/000000000000306095
-            fingerxyz = { 0.016, 0.03, 0.06 };
-            gripperxyz = { 0.112, 0.08, 0.093 };
-            double contactLocRatio = 0.8;
-            collisionZmin = 0.62;
-            double dzPad = 2 * (1 - contactLocRatio)*fingerxyz[2];
-            dzf = gripperxyz[2] + fingerxyz[2] / 2.0;
-            dz = gripperxyz[2] + fingerxyz[2] * contactLocRatio;
-
-            TfeatureInRgripper << 1,  0, 0, 0,
-                                  0,  1, 0, 0,
-                                  0,  0, 1, dz,
-                                  0,  0, 0, 1;
-
-            // Identity, offset 0.1 along Z
-            TpreGraspInRgripper << 1, 0, 0, 0,
-                                   0, 1, 0, 0,
-                                   0, 0, 1, 0.1,
-                                   0, 0, 0, 1;
-
-            OffsetPostGraspInRbase << 0, 0, 0.2;
-
-            bboxGripper = BBox(gripperxyz[0], gripperxyz[1], gripperxyz[2]);
-            fingersClose.push_back(Finger(BBox(fingerxyz[0], fingerxyz[1], fingerxyz[2])));
-            fingersClose.push_back(Finger(BBox(fingerxyz[0], fingerxyz[1], fingerxyz[2])));
-            fingerPads.emplace_back(Finger(BBox(fingerxyz[0], fingerxyz[1], dzPad)));
-            fingerPads.emplace_back(Finger(BBox(fingerxyz[0], fingerxyz[2], dzPad)));
-
-            for (const Finger& f : fingersClose)
-            {
-                fingersOpen.push_back(f);
-            }
-            for (auto& f : fingerPads)
-            {
-                f.setUseMinMaxDim(true, true);
-            }
-
-            setFingersOffset(opening);
-            TgripperInfeature = TfeatureInRgripper.inverse();
-        }
-    };
-
-    struct GraspModelRobotiq2F85 : GraspModelBase
-    {
-        GraspModelRobotiq2F85()
-        {
-            opening = 0;
-            openingMin = 0.001;
-            openingMax = 0.085;
-            frictionAngle = 45 * M_PI / 180.0;
-            NrotSampled = 10;
-            collisionMaxRatio = 0.0;
-            collisionNmaxPts = 0;
-            // https://assets.robotiq.com/website-assets/support_documents/document/2F-85_2F-140_Instruction_Manual_e-Series_PDF_20190206.pdf
-            // https://assets.robotiq.com/website-assets/support_documents/document/online/2F-85_2F-140_TM_InstructionManual_HTML5_20190503.zip/2F-85_2F-140_TM_InstructionManual_HTML5/Content/6.%20Specifications.htm
-            fingerxyz = { 0.0075, 0.035, 0.038 };
-            gripperxyz = { 0.07635, 0.0175, 0.1628 };
-            double contactLocRatio = 0.8;
-            double dzPad = 2 * (1 - contactLocRatio)*fingerxyz[2];
-            dzf = gripperxyz[2] + fingerxyz[2] / 2.0;
-            dz = gripperxyz[2] + fingerxyz[2] * contactLocRatio;
-
-            TfeatureInRgripper << 1,  0, 0, 0,
-                                  0,  1, 0, 0,
-                                  0,  0, 1, dz - 0.035,
-                                  0,  0, 0, 1;
-
-            // Identity, offset -0.1 along Z
-            TpreGraspInRgripper << 1, 0, 0, 0,
-                                   0, 1, 0, 0,
-                                   0, 0, 1, -0.05,
-                                   0, 0, 0, 1;
-
-            OffsetPostGraspInRbase << 0, 0, 0.2;
-
-            bboxGripper = BBox(gripperxyz[0], gripperxyz[1], gripperxyz[2]);
-            fingersClose.emplace_back(Finger(BBox(fingerxyz[0], fingerxyz[1], fingerxyz[2])));
-            fingersClose.emplace_back(Finger(BBox(fingerxyz[0], fingerxyz[1], fingerxyz[2])));
-            fingerPads.emplace_back(Finger(BBox(fingerxyz[0], fingerxyz[1], dzPad)));
-            fingerPads.emplace_back(Finger(BBox(fingerxyz[0], fingerxyz[2], dzPad)));
-
-            for (const Finger& f : fingersClose)
-            {
-                fingersOpen.push_back(f);
-            }
-            for (auto& f : fingerPads)
-            {
-                f.setUseMinMaxDim(true, true);
-            }
-
-            setFingersOffset(opening);
-            TgripperInfeature = TfeatureInRgripper.inverse();
-        }
-    };
 };
 
 #endif // !DX_GRIPPER_MODEL_INCLUDE

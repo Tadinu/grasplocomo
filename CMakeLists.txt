@@ -38,6 +38,9 @@ set(CMAKE_POLICY_DEFAULT_CMP0072 NEW)
 # This line has to appear before 'PROJECT' in order to be able to disable incremental linking
 set(MSVC_INCREMENTAL_DEFAULT ON)
 
+# for M_PI
+add_compile_definitions(_USE_MATH_DEFINES)
+
 project(
         mj_grasplocomo
         VERSION 0.0.1
@@ -57,7 +60,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake")
 include(SimulateDependencies)
 include(MjGraspLoCoMoOptions)
 include(MujocoMacOS)
-
+include(FetchContent)
 include(FindOrFetch)
 
 find_package(Python)
@@ -190,9 +193,24 @@ if (NOT TARGET lodepng)
     endif ()
 endif ()
 
+# # Eigen3
+# find_package(Eigen3 REQUIRED)
+# message("EIGEN3_INCLUDE ${EIGEN3_INCLUDE_DIR}")
+# include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
+# if (${CMAKE_CXX_STANDARD} EQUAL "20")
+    # add_compile_definitions(EIGEN_HAS_STD_RESULT_OF=0)
+# endif ()
+
+
 # Eigen3
+#Look for EIGEN3
+SET(EIGEN3_INCLUDE "${CMAKE_SOURCE_DIR}/ThirdParty/eigen" )
 find_package(Eigen3 REQUIRED)
+message("EIGEN3_INCLUDE ${EIGEN3_INCLUDE_DIR}")
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
+
+
+
 if (${CMAKE_CXX_STANDARD} EQUAL "20")
     add_compile_definitions(EIGEN_HAS_STD_RESULT_OF=0)
 endif ()

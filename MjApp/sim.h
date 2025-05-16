@@ -32,6 +32,9 @@
 
 #pragma once
 
+#include <Windows.h>
+#include <stddef.h>
+
 #include <atomic>
 #include <chrono>
 #include <filesystem>
@@ -44,7 +47,7 @@
 
 // MuJoCo
 #include <array_safety.h>
-#include <fmt/format.h>
+// #include <fmt/format.h>
 #include <mujoco/mujoco.h>
 
 // GraspLoCoMo
@@ -81,9 +84,9 @@ public:
 
   // OBJECT
   const std::string OBJECT_MESH_FILEPATH;  // MODELS_DIR + "/mj_mug.obj";
-  const std::string OBJECT_TYPE = OBJECT_MESH_FILEPATH.empty()
-                                      ? DEFAULT_OBJECT_TYPE
-                                      : std::string(std::filesystem::path(OBJECT_MESH_FILEPATH).stem());
+  const std::string OBJECT_TYPE =
+      OBJECT_MESH_FILEPATH.empty() ? DEFAULT_OBJECT_TYPE
+                                   : std::string(std::filesystem::path(OBJECT_MESH_FILEPATH).stem().string());
   const std::string OBJECT_NAME = "TargetObject_" + OBJECT_TYPE;
   const std::string OBJECT_FREEJOINT_NAME = OBJECT_NAME + "_free_joint";
   const std::string OBJECT_POINTCLOUD_FILEPATH_TXT =
@@ -92,23 +95,23 @@ public:
   // GRIPPER
   // [SCHUNK_PG70]
   const std::string SCHUNK_PG70_XML_PATH = MODELS_DIR + "/schunk/schunk_pg70.xml";
-  const std::string SCHUNK_PG70_NAME = std::filesystem::path(SCHUNK_PG70_XML_PATH).stem();
+  const std::string SCHUNK_PG70_NAME = std::filesystem::path(SCHUNK_PG70_XML_PATH).stem().string();
   static constexpr const char *SCHUNK_PG70_BASE_NAME = "pg70_palm_link";
 
   // [ROBOTIQ_2F85]
   const std::string ROBOTIQ_2F85_XML_PATH = MODELS_DIR + "/robotiq_2f85/robotiq_2f85.xml";
-  const std::string ROBOTIQ_2F85_NAME = std::filesystem::path(ROBOTIQ_2F85_XML_PATH).stem();
+  const std::string ROBOTIQ_2F85_NAME = std::filesystem::path(ROBOTIQ_2F85_XML_PATH).stem().string();
   static constexpr const char *ROBOTIQ_2F85_BASE_NAME = "base_mount";
 
   // [ROBOTIQ_2F140]
   const std::string ROBOTIQ_2F140_XML_PATH = MODELS_DIR + "/robotiq_2f85/robotiq_2f140.xml";
-  const std::string ROBOTIQ_2F140_NAME = std::filesystem::path(ROBOTIQ_2F140_XML_PATH).stem();
+  const std::string ROBOTIQ_2F140_NAME = std::filesystem::path(ROBOTIQ_2F140_XML_PATH).stem().string();
   static constexpr const char *ROBOTIQ_2F140_BASE_NAME = "base_mount";
 
   // MAIN GRIPPER MODEL
   const std::string GRIPPER_XML_PATH = USE_SCHUNK_PG70 ? SCHUNK_PG70_XML_PATH : ROBOTIQ_2F85_XML_PATH;
-  const std::string GRIPPER_XML_DIRNAME = std::filesystem::path(GRIPPER_XML_PATH).parent_path();
-  const std::string GRIPPER_NAME = std::filesystem::path(GRIPPER_XML_PATH).stem();
+  const std::string GRIPPER_XML_DIRNAME = std::filesystem::path(GRIPPER_XML_PATH).parent_path().string();
+  const std::string GRIPPER_NAME = std::filesystem::path(GRIPPER_XML_PATH).stem().string();
   const std::string GRIPPER_BASE_NAME = (GRIPPER_NAME == SCHUNK_PG70_NAME)    ? SCHUNK_PG70_BASE_NAME
                                         : (GRIPPER_NAME == ROBOTIQ_2F85_NAME) ? ROBOTIQ_2F85_BASE_NAME
                                                                               : ROBOTIQ_2F140_BASE_NAME;
@@ -205,7 +208,8 @@ public:
 
     // 1- [GRIPPER]
     mjsBody *gripper_base_spec = mjs_findBody(scene_spec, GRIPPER_BASE_NAME.c_str());
-    gripper_base_spec->pos[2] = 0.5;
+    //gripper_base_spec->pos[2] = 0.5;
+
     // A free joint is required to move gripper freely around the scene
     // A mocap can be added if it needs to be control dynamically, instead of just teleportation
     mjsJoint *gripper_base_joint = mjs_addJoint(gripper_base_spec, nullptr);
@@ -229,8 +233,8 @@ public:
     if (!OBJECT_MESH_FILEPATH.empty()) {
       mjsMesh *obj_mesh = mjs_addMesh(scene_spec, nullptr);
       const auto mesh_path = std::filesystem::path(OBJECT_MESH_FILEPATH);
-      const auto mesh_name = mesh_path.stem();
-      mjs_setString(obj_mesh->file, mesh_path.filename().c_str());
+      const auto mesh_name = mesh_path.stem().string();
+      mjs_setString(obj_mesh->file, mesh_path.filename().string().c_str());
       mjsGeom *obj_mesh_geom = mjs_addGeom(target_obj, nullptr);
       mjs_setString(obj_mesh_geom->meshname, mesh_name.c_str());
       mjs_setString(obj_mesh_geom->name, mesh_name.c_str());
@@ -253,6 +257,7 @@ public:
         mj_app::SetBodyTreeGravityCompensationEnabled(target_obj, true);
       }
     } else {
+      //// Adding point cloud to the scene
       for (const auto &point : obj_pointcloud) {
         mjsGeom *point_geom = mjs_addGeom(world_body, nullptr);
         point_geom->type = mjGEOM_BOX;
@@ -361,6 +366,7 @@ protected:
   };
   using GraspPoseEntryList = std::vector<GraspPoseEntry>;
 
+
   GraspPoseEntryList GenerateGrasps(const mjModel *model, const mjData *data,
                                     const char *output_filepath = nullptr) const {
     mj_app::Print("LoCoMo Grasping -------- ");
@@ -373,7 +379,7 @@ protected:
 
     // 2.1- downsampling: resolution of the point cloud -> IMPORTANT!
     // resolutionFactor: Used to compute the LoCoMo sphere radius
-    dxGraspLoCoMo<dxGraspModel> grasp;
+    dxGraspLoCoMo grasp;
     grasp.setResolution(0.008);
 
     // 2.2- Computing grasps
@@ -389,17 +395,18 @@ protected:
     int Ngrasps = 10;
     cout << "pre-grasp pose | grasp pose | post-grasp pose | gripper opening | score" << endl;
     for (int i = 0; i < min(Ngrasps, static_cast<int>(grasp_results.size())); i++) {
-      const auto &g = grasp_results[i];
+      dxGraspLoCoMo::GraspPG70 g = grasp_results[i];
 
       cout << "Grasp #" << i << endl;
 #if DX_GRASP_AS_POS_QUAT
-      dxGripperModel::GraspSuite::write_grasp(cout, g.preGrasp);
-      dxGripperModel::GraspSuite::write_grasp(cout, g.pose);
-      dxGripperModel::GraspSuite::write_grasp(cout, g.postGrasp);
+      //dxGripperModel::GraspSuite::write_grasp(cout, g.preGrasp);
+      //dxGripperModel::GraspSuite::write_grasp(cout, g.pose);
+      //dxGripperModel::GraspSuite::write_grasp(cout, g.postGrasp);
+      //cout << g.pose << endl;
 #else
-      cout << g.getColMajorVector(g.preGrasp) << "|";
-      cout << g.getColMajorVector(g.pose) << "|";
-      cout << g.getColMajorVector(g.postGrasp) << "|";
+      //cout << g.getColMajorVector(g.preGrasp) << endl;
+      cout << g.getColMajorVector(g.pose) << endl;
+      //cout << g.getColMajorVector(g.postGrasp) << endl;
 #endif
       cout << g.opening << " | ";
       cout << g.fs.prob << endl << endl;
@@ -419,7 +426,8 @@ protected:
       grasp_pose[6] = quat.z();
       return grasp_pose;
     };
-    for (const auto &grasp_result : grasp.results.grasps) {
+
+    for (const auto &grasp_result : grasp_results) {
       out_gb_poses.emplace_back(fPose(grasp_result.preGrasp), fPose(grasp_result.pose),
                                 fPose(grasp_result.postGrasp), grasp_result.fs.prob, grasp_result.opening,
                                 grasp_result.openingMax);
@@ -470,7 +478,7 @@ protected:
   }
 
   void MoveGripper(const mjModel *model, const mjData *data, const GraspPoseEntry &pose_entry) const {
-    const auto& pose = pose_entry.grasp;
+    const auto &pose = pose_entry.grasp;
     memcpy(
         &data->qpos[model->jnt_dofadr[mj_name2id(model, mjOBJ_JOINT, GRIPPER_BASE_FREEJOINT_NAME.c_str())]],
         pose.data(), sizeof(pose));

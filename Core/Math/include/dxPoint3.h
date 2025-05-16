@@ -45,11 +45,11 @@
 #include <iostream>
 #include <string>
 #include <Eigen/Core>
+#include <Eigen/Dense>
+#include "dxPoint3.h"
 #include <vector>
 #include <array>
 
-// GraspLoCoMo
-#include "Core/Math/include/dxPoint3.h"
 
 class dxP3
 {
@@ -72,14 +72,14 @@ public:
         x = y = z = 0;
     }
 
-    Eigen::Vector3d getVector() const
+    Eigen::Vector3d getVector()
     {
         Eigen::Vector3d v;
         v << x, y, z;
         return v;
     }
 
-    std::vector<double> get() const
+    std::vector<double> get()
     {
         return { x, y, z };
     }
@@ -98,12 +98,12 @@ public:
         this->z = v[2];
     }
 
-    double norm() const
+    double norm()
     {
         return std::sqrt(x * x + y * y + z *z);
     }
 
-    std::array<double, 3> toSherical() const
+    std::array<double, 3> toSherical()
     {
         double phi = atan2(y, x);
         phi = (phi > 0 ? phi : (2 * M_PI + phi));
@@ -114,7 +114,7 @@ public:
         return { r, theta, phi };
     }
 
-    std::array<int, 3> cartesianIJK(double resolution) const
+    std::array<int, 3> cartesianIJK(double resolution)
     {
         if (resolution == 0)
             resolution = 1;
@@ -127,7 +127,7 @@ public:
         return ijk;
     }
 
-    std::array<int, 3> shpericalIJK(double resolution, int band) const
+    std::array<int, 3> shpericalIJK(double resolution, int band)
     {
         if (resolution == 0)
             resolution = 1;
@@ -145,7 +145,7 @@ public:
         return { j, k };
     }
 
-    void print(std::string name="") const
+    void print(std::string name="")
     {
         std::cout << name << " => x: " << x << " | y: "<< y << " | z: " << z << std::endl;
     }

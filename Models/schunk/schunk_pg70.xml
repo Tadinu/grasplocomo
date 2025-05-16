@@ -3,22 +3,24 @@
 
   <asset>
     <mesh name="pg70" file="pg70/pg70.stl" />
+	<material name="pg70_mat" rgba="1 1 1 0.3"       
+	        specular="0.2" shininess="0.5"/>   
   </asset>
 
   <worldbody>
     <light name="top" pos="0 0 2" mode="trackcom"/>
     <body name="pg70_palm_link">
       <inertial pos="0 0 0" mass="1" diaginertia="0.01 0.01 0.01" />
-      <geom type="mesh" mesh="pg70" />
-      <body name="pg70_finger_left_link" pos="0 0.0055 0.0789">
+      <geom type="mesh" mesh="pg70" material="pg70_mat" pos="0.0465 0.0 0.0" euler="0.0 -1.57 0.0"/>
+	  <body name="pg70_finger_left_link" pos="-0.0765 0.008 0.0">
         <inertial pos="0 0 0" mass="1" diaginertia="0.01 0.01 0.01" />
         <joint name="pg70_finger_left_joint" axis="0 1 0" type="slide" range="-0.001 0.0301" actuatorfrcrange="-10 10" />
-        <geom size="0.01 0.01 0.03" type="box" rgba="1 0 0 1" />
+        <geom size="0.03 0.008 0.015" type="box" rgba="1 0 0 1" />
       </body>
-      <body name="pg70_finger_right_link" pos="0 -0.0055 0.0789">
+      <body name="pg70_finger_right_link" pos="-0.0765 -0.008 0.0">
         <inertial pos="0 0 0" mass="1" diaginertia="0.01 0.01 0.01" />
         <joint name="pg70_finger_right_joint" axis="0 -1 0" type="slide" range="-0.001 0.0301" actuatorfrcrange="-10 10" />
-        <geom size="0.01 0.01 0.03" type="box" rgba="0 1 0 1" />
+        <geom size="0.03 0.008 0.015" type="box" rgba="0 1 0 1" />
       </body>
     </body>
   </worldbody>
