@@ -1,1 +1,6 @@
+PG70 CAD:
+https://schunk.com/de/en/gripping-systems/parallel-gripper/pg/pg-70/p/000000000000306095
+
+PG70 URDF:
 https://github.com/Daniella1/urdf_files_dataset/tree/main/urdf_files/random/xacro_generated/schunk_modular_robotics/schunk_description
+https://github.com/ipa320/schunk_modular_robotics/blob/kinetic_dev/schunk_description
