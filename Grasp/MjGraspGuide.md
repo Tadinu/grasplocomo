@@ -24,9 +24,11 @@ References:
 
 https://manipulation.csail.mit.edu/clutter.html - https://manipulation.csail.mit.edu/pick.html<br>
 [An Overview of 3D Object Grasp Synthesis Algorithms](https://hal.science/hal-00731127)<br>
+https://github.com/mjd3/deformable_object_grasping/tree/icra-submission
 https://rhys-newbury.github.io/projects/6dof<br>
 https://paperswithcode.com/task/robotic-grasping<br>
 https://github.com/rhett-chen/Robotic-grasping-papers<br>
+https://github.com/boschresearch/mj-grasp-sim<br>
 https://geo-match.github.io<br>
 https://contactdb.cc.gatech.edu/contactgrasp.html<br>
 https://graspit-simulator.github.io<br>
